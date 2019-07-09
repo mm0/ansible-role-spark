@@ -1,7 +1,3 @@
 - hosts: all
-  vars:
-  - conf: /tmp/ntp.conf
-  pre_tasks:
-  - file: state=touch dest={{ conf }} 
   roles:
-  - { role: ansible-role-ntp, ntp_conf: "{{ conf }}" }
+  - { role: ansible-role-spark }
