@@ -15,3 +15,7 @@ spark:
 
   env_extras: {}
   defaults_extras: {}
+spark_installation_dir: "/opt/spark-{{ spark.version }}-bin-without-hadoop"
+spark_archive: "spark-{{ spark.version }}-bin-without-hadoop.tgz"
+spark_download: "{{ spark.download_location }}/spark-{{ spark.version }}/{{ spark_archive }}"
+spark_num_workers: 1 #"{{ groups['nodes'] | length | int }}"

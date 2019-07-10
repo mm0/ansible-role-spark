@@ -4,47 +4,40 @@
 #        shell={{ spark.user_shell }}
 #        state=present
 #        groups="{{ spark.user_groups | join(',') }}"
-
-- name: set spark fact
-  set_fact: spark_installed=True
-
-- name: set spark installation path fact
-  set_fact: spark_installation_dir=spark-{{ spark.version }}-bin-hadoop{{ spark.hadoop_version }}
-
-- name: set spark archive fact
-  set_fact: spark_archive=spark-{{ spark.version }}-bin-without-hadoop.tgz
-
-- name: set spark download location fact
-  set_fact: spark_download={{ spark.download_location }}/spark-{{ spark.version }}/{{ spark_archive }}
-
-- name: define number of spark workers
-  set_fact: number_of_workers="1" #"{{ groups['nodes'] | length | int }}"
+- name: ensure tar is present
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - tar
+  - unzip
+  become: yes
 
 - name: create install directory
   file:
-    path: "{{ install_dir }}/{{ spark_installation_dir }}"
+    path: "{{ spark_installation_dir }}"
     state: directory
 #    owner: "{{ spark.user }}"
 #    group: "{{ spark.user }}"
-#  become: true
+  become: true
 
 - name: stop spark
   shell: "sbin/stop-all.sh"
   args:
-      chdir: "{{ install_dir}}/{{ spark_installation_dir }}"
+      chdir: "{{ spark_installation_dir }}"
   ignore_errors: yes
   when: inventory_hostname in groups['master']
 
-
-- debug:
-     msg: "Downloading Spark from: {{ spark_download }}"
-
 - name: download spark
-  get_url: url="{{ spark_download }}" dest="{{ install_temp_dir }}/{{ spark_archive }}"
+  get_url: url="{{ spark_download }}" dest="/tmp/{{ spark_archive }}"
 
 - name: unarchive to the install directory
-  shell: "tar -xvf {{ install_temp_dir }}/{{ spark_archive }} --strip 1 --directory {{ install_dir }}/{{ spark_installation_dir }}"
-
+  unarchive:
+    src: /tmp/{{ spark_archive }}
+    dest: "{{ spark_installation_dir }}"
+    remote_src: true
+    extra_opts:
+    - "--strip-components=1"
 
 - name: create spark working directory
   file:
@@ -52,17 +45,23 @@
     state: directory
 #    owner: "{{ spark.user }}"
 #    group: "{{ spark.user }}"
-#  become: true
+  become: true
 
 - name: set spark-env.sh
-  template: src="spark-env-sh.j2" dest="{{ install_dir }}/{{ spark_installation_dir }}/conf/spark-env.sh"
+  template:
+    src: "spark-env-sh.j2"
+    dest: "{{ spark_installation_dir }}/conf/spark-env.sh"
 
 - name: set spark-defaults.conf
-  template: src="spark-defaults-conf.j2" dest="{{ install_dir}}/{{ spark_installation_dir }}/conf/spark-defaults.conf"
+  template:
+    src: "spark-defaults-conf.j2"
+    dest: "{{ spark_installation_dir }}/conf/spark-defaults.conf"
 
 - name: set slaves
-  template: src="slaves.j2" dest="{{ install_dir}}/{{ spark_installation_dir }}/conf/slaves"
-  when: number_of_workers| int >= 2
+  template:
+    src: "slaves.j2"
+    dest: "{{ spark_installation_dir }}/conf/slaves"
+  when: spark_num_workers| int >= 2
 
 # Environment setup.
 - name: add spark profile to startup
@@ -72,5 +71,8 @@
     mode: 0644
 
 - name: start-cluster utility
-  template: src="spark-cluster.sh.j2" dest="{{ install_dir }}/bin/spark-cluster.sh" mode=0744
-  when: inventory_hostname in groups['master']
+  template:
+    src: "spark-cluster.sh.j2"
+    dest: "{{ spark_installation_dir}}/bin/spark-cluster.sh"
+    mode: 0744
+  #when: is_master
