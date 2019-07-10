@@ -62,6 +62,7 @@
 
 - name: set slaves
   template: src="slaves.j2" dest="{{ install_dir}}/{{ spark_installation_dir }}/conf/slaves"
+  when: number_of_workers| int >= 2
 
 # Environment setup.
 - name: add spark profile to startup
