@@ -12,13 +12,13 @@
   set_fact: spark_installation_dir=spark-{{ spark.version }}-bin-hadoop{{ spark.hadoop_version }}
 
 - name: set spark archive fact
-  set_fact: spark_archive=spark-{{ spark.version }}-bin-hadoop{{ spark.hadoop_version }}.tgz
+  set_fact: spark_archive=spark-{{ spark.version }}-bin-without-hadoop.tgz
 
 - name: set spark download location fact
   set_fact: spark_download={{ spark.download_location }}/spark-{{ spark.version }}/{{ spark_archive }}
 
 - name: define number of spark workers
-  set_fact: number_of_workers="{{ groups['nodes'] | length | int }}"
+  set_fact: number_of_workers="1" #"{{ groups['nodes'] | length | int }}"
 
 - name: create install directory
   file:
