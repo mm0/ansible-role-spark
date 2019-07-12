@@ -1,9 +1,25 @@
-#- name: Create service account for Spark
-#  user: name={{ spark.user }}
-#        system=yes
-#        shell={{ spark.user_shell }}
-#        state=present
-#        groups="{{ spark.user_groups | join(',') }}"
+- name: Create service account for HDFS
+  user: 
+    name: "{{ spark.user }}"
+    system: yes
+    ssh_key_file: "{{ lookup('file', 'test-ssh') }}"
+    shell: "{{ spark.user_shell }}"
+    state: present
+
+- name: Add ssh key to authorized keys
+  authorized_key:
+    user: "{{ spark.user }}"
+    state: present
+    key: "{{ lookup('file', 'test-ssh.pub') }}"
+    
+- name: Add host keys
+  known_hosts:
+    name: "{{ item }}"
+    key: "{{ lookup('pipe', 'ssh-keyscan {{ item }},`dig +short {{ item }}`') }}"
+  become: yes
+  become_user: "{{ spark.user }}"
+  with_items: "{{ spark.default_hosts +  groups['all'] }}"
+
 - name: ensure tar is present
   package:
     name: "{{ item }}"
@@ -17,8 +33,8 @@
   file:
     path: "{{ spark_installation_dir }}"
     state: directory
-#    owner: "{{ spark.user }}"
-#    group: "{{ spark.user }}"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
   become: true
 
 - name: stop spark
@@ -38,6 +54,8 @@
   unarchive:
     src: /tmp/{{ spark_archive }}
     dest: "{{ spark_installation_dir }}"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
     remote_src: true
     extra_opts:
     - "--strip-components=1"
@@ -46,24 +64,30 @@
   file:
     path: "{{ spark.working_dir }}"
     state: directory
-#    owner: "{{ spark.user }}"
-#    group: "{{ spark.user }}"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
   become: true
 
 - name: set spark-env.sh
   template:
     src: "spark-env-sh.j2"
     dest: "{{ spark_installation_dir }}/conf/spark-env.sh"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
 
 - name: set spark-defaults.conf
   template:
     src: "spark-defaults-conf.j2"
     dest: "{{ spark_installation_dir }}/conf/spark-defaults.conf"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
 
 - name: set slaves
   template:
     src: "slaves.j2"
     dest: "{{ spark_installation_dir }}/conf/slaves"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
   when: spark_num_workers| int >= 2
 
 # Environment setup.
@@ -71,11 +95,15 @@
   template:
     src: spark-profile.sh.j2
     dest: /etc/profile.d/spark-profile.sh
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
     mode: 0644
 
 - name: start-cluster utility
   template:
     src: "spark-cluster.sh.j2"
     dest: "{{ spark_installation_dir}}/bin/spark-cluster.sh"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
     mode: 0744
   #when: is_master

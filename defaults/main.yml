@@ -10,9 +10,10 @@ spark:
   worker_ui_port: 8085
   download_location: http://archive.apache.org/dist/spark/
   user: "spark"               # the name of the (OS)user created for spark
-  user_groups: []             # Optional list of (OS)groups the new spark user should belong to
-  user_shell: "/bin/false"    # the spark user's default shell
-
+  user_shell: /bin/bash
+  default_hosts:
+  - 0.0.0.0
+  - 127.0.0.1
   env_extras: {}
   defaults_extras: {}
 spark_installation_dir: "/opt/spark-{{ spark.version }}-bin-without-hadoop"
