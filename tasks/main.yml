@@ -29,7 +29,10 @@
   when: inventory_hostname in groups['master']
 
 - name: download spark
-  get_url: url="{{ spark_download }}" dest="/tmp/{{ spark_archive }}"
+  get_url: 
+    url: "{{ spark_download }}" 
+    dest: "/tmp/{{ spark_archive }}"
+    use_proxy: no
 
 - name: unarchive to the install directory
   unarchive:
