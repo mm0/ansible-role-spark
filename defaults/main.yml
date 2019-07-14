@@ -19,4 +19,5 @@ spark:
 spark_installation_dir: "/opt/spark-{{ spark.version }}-bin-without-hadoop"
 spark_archive: "spark-{{ spark.version }}-bin-without-hadoop.tgz"
 spark_download: "{{ spark.download_location }}spark-{{ spark.version }}/{{ spark_archive }}"
-spark_num_workers: 1 #"{{ groups['nodes'] | length | int }}"
+spark_num_workers: "{{ (groups['cluster_master']+ groups['cluster_nodes']) |length|int}}"
+spark_master_ip: 127.0.0.1

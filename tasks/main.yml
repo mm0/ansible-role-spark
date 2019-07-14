@@ -2,15 +2,22 @@
   user: 
     name: "{{ spark.user }}"
     system: yes
-    ssh_key_file: "{{ lookup('file', 'test-ssh') }}"
     shell: "{{ spark.user_shell }}"
     state: present
+
+- name: Upload SSH Key for user
+  copy:
+    src: test-key
+    dest: "/home/{{ spark.user }}/.ssh/id_rsa"
+    owner: "{{ spark.user }}"
+    group: "{{ spark.user }}"
+    mode: 0600
 
 - name: Add ssh key to authorized keys
   authorized_key:
     user: "{{ spark.user }}"
     state: present
-    key: "{{ lookup('file', 'test-ssh.pub') }}"
+    key: "{{ lookup('file', 'test-key.pub') }}"
     
 - name: Add host keys
   known_hosts:
@@ -38,11 +45,11 @@
   become: true
 
 - name: stop spark
-  shell: "sbin/stop-all.sh"
+  shell: "nohup sbin/stop-all.sh &"
   args:
       chdir: "{{ spark_installation_dir }}"
   ignore_errors: yes
-  when: inventory_hostname in groups['master']
+  when: inventory_hostname in groups['cluster_master']
 
 - name: download spark
   get_url: 
@@ -106,4 +113,4 @@
     owner: "{{ spark.user }}"
     group: "{{ spark.user }}"
     mode: 0744
-  #when: is_master
+  when: inventory_hostname in groups['cluster_master']
