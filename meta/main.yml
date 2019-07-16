@@ -5,6 +5,7 @@ galaxy_info:
   company: 
   license: BSD2
   min_ansible_version: 2.0
+  role_name: spark
   platforms:
   - name: Ubuntu
     versions:
