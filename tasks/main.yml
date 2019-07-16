@@ -2,6 +2,7 @@
   user: 
     name: "{{ spark.user }}"
     system: yes
+    generate_ssh_key: yes
     shell: "{{ spark.user_shell }}"
     state: present
 
