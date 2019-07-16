@@ -7,7 +7,7 @@
 
 - name: Upload SSH Key for user
   copy:
-    src: test-key
+    src: "{{ ssh_key_filename }}"
     dest: "/home/{{ spark.user }}/.ssh/id_rsa"
     owner: "{{ spark.user }}"
     group: "{{ spark.user }}"
@@ -17,7 +17,7 @@
   authorized_key:
     user: "{{ spark.user }}"
     state: present
-    key: "{{ lookup('file', 'test-key.pub') }}"
+    key: "{{ lookup('file', ssh_key_filename+'.pub') }}"
     
 - name: Add host keys
   known_hosts:

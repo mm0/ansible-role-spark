@@ -21,3 +21,4 @@ spark_archive: "spark-{{ spark.version }}-bin-without-hadoop.tgz"
 spark_download: "{{ spark.download_location }}spark-{{ spark.version }}/{{ spark_archive }}"
 spark_num_workers: "{{ (groups['cluster_master']+ groups['cluster_nodes']) |length|int}}"
 spark_master_ip: 127.0.0.1
+ssh_key_filename: "test-key"
