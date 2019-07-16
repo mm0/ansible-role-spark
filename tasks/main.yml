@@ -95,7 +95,7 @@
     dest: "{{ spark_installation_dir }}/conf/slaves"
     owner: "{{ spark.user }}"
     group: "{{ spark.user }}"
-  when: spark_num_workers| int >= 2
+  when: spark_num_workers| int >= 2 and inventory_hostname in groups['cluster_master']
 
 # Environment setup.
 - name: add spark profile to startup
@@ -114,3 +114,10 @@
     group: "{{ spark.user }}"
     mode: 0744
   when: inventory_hostname in groups['cluster_master']
+
+- name: run on master
+  shell: ". /etc/profile.d/java_home.sh &&  sbin/start-all.sh"
+    chdir: "{{ spark_installation_dir }}"
+  become_user: "{{ spark.user }}"
+  when: (inventory_hostname in groups['cluster_master'])
+  tags: [ 'never', 'start_cluster' ]
