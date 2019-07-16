@@ -122,4 +122,3 @@
     chdir: "{{ spark_installation_dir }}"
   become_user: "{{ spark.user }}"
   when: (inventory_hostname in groups['cluster_master'])
-  tags: [ 'never', 'start_cluster' ]
