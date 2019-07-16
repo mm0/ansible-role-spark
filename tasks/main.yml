@@ -117,6 +117,7 @@
 
 - name: run on master
   shell: ". /etc/profile.d/java_home.sh &&  sbin/start-all.sh"
+  args:
     chdir: "{{ spark_installation_dir }}"
   become_user: "{{ spark.user }}"
   when: (inventory_hostname in groups['cluster_master'])
